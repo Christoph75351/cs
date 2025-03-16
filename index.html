@@ -134,7 +134,6 @@ function playVideo(videoUrl) {
     const modal = document.getElementById('videoModal');
     const videoPlayer = document.getElementById('videoPlayer');
 
-    // **销毁旧的 HLS 实例**
     if (hls) {
         hls.destroy();
         hls = null;
@@ -144,23 +143,35 @@ function playVideo(videoUrl) {
         hls = new Hls();
         hls.loadSource(videoUrl);
         hls.attachMedia(videoPlayer);
-    } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-        videoPlayer.src = videoUrl;
     } else {
-        alert('您的浏览器不支持 HLS 播放！');
-        return;
+        videoPlayer.src = videoUrl;
     }
 
     modal.classList.remove('hidden');
     videoPlayer.play();
+    lastTime = 0;
 
-    // **检测是否已登录**
+    // **未登录用户限制进度条拖动**
     if (!localStorage.getItem("loggedInUser")) {
         setTimeout(() => {
-            videoPlayer.pause(); // 30秒后暂停
-            closeModal(); // 强制关闭播放器
-            openLoginModal(); // 打开登录窗口
+            videoPlayer.pause();
+            closeModal();
+            openLoginModal();
         }, 30000);
+
+        videoPlayer.addEventListener("seeking", preventSeeking);
+        videoPlayer.addEventListener("timeupdate", function () {
+            lastTime = videoPlayer.currentTime;
+        });
+    } else {
+        videoPlayer.removeEventListener("seeking", preventSeeking);
+    }
+}
+ // **封装进度条拖动限制的逻辑**
+function preventSeeking(event) {
+    const videoPlayer = event.target;
+    if (videoPlayer.currentTime > lastTime) {
+        videoPlayer.currentTime = lastTime;
     }
 }
 
@@ -237,12 +248,17 @@ function login() {
         updateLoginState();
         closeLoginModal();
 
-        // **重新打开播放器，并恢复播放**
+        // **恢复进度条拖动功能**
+        const videoPlayer = document.getElementById("videoPlayer");
+        videoPlayer.removeEventListener("seeking", preventSeeking);
+
+        // **继续播放视频**
         playVideo(lastVideoUrl);
     } else {
         document.getElementById("loginError").classList.remove("hidden");
     }
 }
+
 
 
 
