@@ -131,38 +131,38 @@
         }
 
 function playVideo(videoUrl) {
-            const modal = document.getElementById('videoModal');
-            const videoPlayer = document.getElementById('videoPlayer');
+    const modal = document.getElementById('videoModal');
+    const videoPlayer = document.getElementById('videoPlayer');
 
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
+    // **销毁旧的 HLS 实例**
+    if (hls) {
+        hls.destroy();
+        hls = null;
+    }
 
-            if (Hls.isSupported()) {
-                hls = new Hls();
-                hls.loadSource(videoUrl);
-                hls.attachMedia(videoPlayer);
-            } else {
-                videoPlayer.src = videoUrl;
-            }
+    if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(videoUrl);
+        hls.attachMedia(videoPlayer);
+    } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+        videoPlayer.src = videoUrl;
+    } else {
+        alert('您的浏览器不支持 HLS 播放！');
+        return;
+    }
 
-            modal.classList.remove('hidden');
-            videoPlayer.play();
-            lastTime = 0;
+    modal.classList.remove('hidden');
+    videoPlayer.play();
 
-            if (!localStorage.getItem("loggedInUser")) {
-                setTimeout(() => {
-                    videoPlayer.pause();
-                    closeModal();
-                    openLoginModal();
-                }, 30000);
-
-                videoPlayer.addEventListener("seeking", preventSeeking);
-            } else {
-                videoPlayer.removeEventListener("seeking", preventSeeking);
-            }
-        }
+    // **检测是否已登录**
+    if (!localStorage.getItem("loggedInUser")) {
+        setTimeout(() => {
+            videoPlayer.pause(); // 30秒后暂停
+            closeModal(); // 强制关闭播放器
+            openLoginModal(); // 打开登录窗口
+        }, 30000);
+    }
+}
 
 
 
@@ -227,20 +227,22 @@ function closeModal() {
             document.getElementById("loginError").classList.add("hidden");
         }
 
-        function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
+function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
-            const user = users.find(u => u.username === username && u.password === password);
-            if (user) {
-                localStorage.setItem("loggedInUser", username);
-                updateLoginState();
-                closeLoginModal();
-                playVideo(lastVideoUrl);
-            } else {
-                document.getElementById("loginError").classList.remove("hidden");
-            }
-        }
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+        localStorage.setItem("loggedInUser", username);
+        updateLoginState();
+        closeLoginModal();
+
+        // **重新打开播放器，并恢复播放**
+        playVideo(lastVideoUrl);
+    } else {
+        document.getElementById("loginError").classList.remove("hidden");
+    }
+}
 
 
 
