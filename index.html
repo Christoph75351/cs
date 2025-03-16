@@ -154,6 +154,19 @@ function playVideo(videoUrl) {
     modal.classList.remove('hidden');
     videoPlayer.play();
 
+        // **未登录状态下禁用进度条拖动**
+    if (!localStorage.getItem("loggedInUser")) {
+        let lastTime = 0;
+        videoPlayer.addEventListener("seeking", function() {
+            if (videoPlayer.currentTime > lastTime) {
+                videoPlayer.currentTime = lastTime; // 强制回到原时间
+            }
+        });
+
+        videoPlayer.addEventListener("timeupdate", function() {
+            lastTime = videoPlayer.currentTime; // 记录当前播放时间
+        });
+        
     // **检测是否已登录**
     if (!localStorage.getItem("loggedInUser")) {
         setTimeout(() => {
@@ -237,11 +250,17 @@ function login() {
         updateLoginState();
         closeLoginModal();
 
-        // **重新打开播放器，并恢复播放**
-        playVideo(lastVideoUrl);
+        // **移除进度条限制**
+        const videoPlayer = document.getElementById("videoPlayer");
+        videoPlayer.removeEventListener("seeking", preventSeeking);
     } else {
         document.getElementById("loginError").classList.remove("hidden");
     }
+}
+
+// **封装禁止拖动函数**
+function preventSeeking() {
+    videoPlayer.currentTime = lastTime;
 }
 
 
