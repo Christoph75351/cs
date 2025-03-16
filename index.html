@@ -19,9 +19,11 @@
 
     <!-- 模态框 (视频播放器) -->
     <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden transition-opacity duration-300">
-        <div class="bg-white p-4 rounded-lg shadow-lg max-w-3xl w-full relative">
+        <div class="bg-white p-4 rounded-lg shadow-lg w-full max-w-3xl sm:max-w-xl lg:max-w-2xl relative">
             <button id="closeModal" class="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-full">X</button>
-            <video id="videoPlayer" class="w-full" controls></video>
+            <div class="relative w-full aspect-w-9 aspect-h-16 max-h-[90vh]">
+                <video id="videoPlayer" class="w-full h-full object-contain" controls></video>
+            </div>
         </div>
     </div>
 
@@ -37,7 +39,7 @@
                 if (!response.ok) throw new Error('Failed to load JSON');
                 
                 videos = await response.json();
-                console.log("视频数据：", videos); // 调试信息
+                console.log("视频数据：", videos);
                 renderVideos();
             } catch (error) {
                 console.error('Error loading videos:', error);
@@ -52,7 +54,7 @@
             const end = start + videosPerPage;
             const pageVideos = videos.slice(start, end);
 
-            pageVideos.forEach((video, index) => {
+            pageVideos.forEach((video) => {
                 const videoElement = document.createElement('div');
                 videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
                 videoElement.innerHTML = `
@@ -69,7 +71,6 @@
             const modal = document.getElementById('videoModal');
             const videoPlayer = document.getElementById('videoPlayer');
 
-            // 清除旧的视频源，防止叠加
             if (hls) {
                 hls.destroy();
                 hls = null;
@@ -95,22 +96,21 @@
             const modal = document.getElementById('videoModal');
             const videoPlayer = document.getElementById('videoPlayer');
 
-            modal.classList.add('opacity-0'); // 添加淡出动画
+            modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('opacity-100');
                 videoPlayer.pause();
-                videoPlayer.src = ''; // 清空视频源
+                videoPlayer.src = '';
                 if (hls) {
                     hls.destroy();
                     hls = null;
                 }
-            }, 300); // 300ms 后隐藏（匹配 CSS 动画）
+            }, 300);
         }
 
         document.getElementById('closeModal').addEventListener('click', closeModal);
 
-        // 点击模态框背景也可以关闭
         document.getElementById('videoModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('videoModal')) {
                 closeModal();
