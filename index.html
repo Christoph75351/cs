@@ -3,78 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频播放站</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/video.js/dist/video.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/video.js/dist/video-js.css" rel="stylesheet">
-    <style>
-        #app { max-width: 800px; margin: auto; padding: 20px; }
-        .hidden { display: none; }
-    </style>
+    <title>视频播放网站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="app">
-        <div v-if="!loggedIn">
-            <h2>请登录</h2>
-            <input v-model="username" placeholder="用户名">
-            <input v-model="password" type="password" placeholder="密码">
-            <button @click="login">登录</button>
-            <p v-if="error">{{ error }}</p>
-        </div>
-        <div v-else>
-            <h2>{{ video.vod_name }}</h2>
-            <video id="player" class="video-js vjs-default-skin" controls preload="auto">
-                <source :src="video.vod_play_url" type="application/x-mpegURL">
-            </video>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4">视频列表</h1>
+        <div id="video-container" class="grid grid-cols-4 gap-4"></div>
+        <div class="flex justify-between mt-4">
+            <button id="prevPage" class="px-4 py-2 bg-blue-500 text-white rounded">上一页</button>
+            <button id="nextPage" class="px-4 py-2 bg-blue-500 text-white rounded">下一页</button>
         </div>
     </div>
-
+    
     <script>
-        const app = Vue.createApp({
-            data() {
-                return {
-                    loggedIn: localStorage.getItem('loggedIn') === 'true',
-                    username: '',
-                    password: '',
-                    error: '',
-                    video: {}
-                };
-            },
-            methods: {
-                async fetchVideo() {
-                    const res = await fetch('videos.json');
-                    const videos = await res.json();
-                    this.video = videos[0];
-                },
-                async login() {
-                    const res = await fetch('users.json');
-                    const users = await res.json();
-                    const validUser = users.find(user => user.username === this.username && user.password === this.password);
-                    if (validUser) {
-                        localStorage.setItem('loggedIn', 'true');
-                        this.loggedIn = true;
-                    } else {
-                        this.error = '用户名或密码错误';
-                    }
-                }
-            },
-            async mounted() {
-                await this.fetchVideo();
-                if (this.loggedIn) {
-                    const player = videojs('player');
-                    player.ready(function() {
-                        this.currentTime(20);
-                        this.on('timeupdate', () => {
-                            if (!localStorage.getItem('loggedIn') && this.currentTime() >= 50) {
-                                this.pause();
-                                alert('请登录以继续观看');
-                            }
-                        });
-                    });
-                }
+        let videos = [];
+        let currentPage = 1;
+        const videosPerPage = 40;
+
+        async function loadVideos() {
+            const response = await fetch('videos.json');
+            videos = await response.json();
+            renderVideos();
+        }
+
+        function renderVideos() {
+            const container = document.getElementById('video-container');
+            container.innerHTML = '';
+            const start = (currentPage - 1) * videosPerPage;
+            const end = start + videosPerPage;
+            const pageVideos = videos.slice(start, end);
+
+            pageVideos.forEach(video => {
+                const videoElement = document.createElement('div');
+                videoElement.className = 'bg-white p-2 rounded shadow';
+                videoElement.innerHTML = `
+                    <img src="${video.thumbnail}" alt="${video.name}" class="w-full h-40 object-cover rounded">
+                    <h2 class="mt-2 text-lg font-semibold">${video.name}</h2>
+                    <p class="text-gray-500">${video.time}</p>
+                `;
+                container.appendChild(videoElement);
+            });
+        }
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderVideos();
             }
         });
-        app.mount('#app');
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage * videosPerPage < videos.length) {
+                currentPage++;
+                renderVideos();
+            }
+        });
+
+        loadVideos();
     </script>
 </body>
 </html>
