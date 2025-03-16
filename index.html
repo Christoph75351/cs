@@ -17,48 +17,42 @@
         </div>
     </div>
 
-    <!-- 提示信息 -->
-    <p id="errorMessage" class="text-red-500 text-center mt-4 hidden">加载视频失败，请检查 JSON 文件。</p>
+    <!-- 模态框 (视频播放器) -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden transition-opacity duration-300">
+        <div class="bg-white p-4 rounded-lg shadow-lg max-w-3xl w-full relative">
+            <button id="closeModal" class="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-full">X</button>
+            <video id="videoPlayer" class="w-full" controls></video>
+        </div>
+    </div>
 
     <script>
         let videos = [];
         let currentPage = 1;
         const videosPerPage = 40;
+        let hls = null; // 存储 HLS 实例
 
         async function loadVideos() {
             try {
-                console.log("正在加载 JSON 数据...");
                 const response = await fetch('https://christoph75351.github.io/cs/videos.json');
-                if (!response.ok) throw new Error('JSON 加载失败');
-
-                videos = await response.json();
-                console.log("加载成功，视频数据:", videos);
+                if (!response.ok) throw new Error('Failed to load JSON');
                 
-                if (!Array.isArray(videos) || videos.length === 0) {
-                    throw new Error("JSON 格式错误或为空");
-                }
-
+                videos = await response.json();
+                console.log("视频数据：", videos); // 调试信息
                 renderVideos();
             } catch (error) {
-                console.error('加载视频失败:', error);
-                document.getElementById('errorMessage').classList.remove('hidden');
+                console.error('Error loading videos:', error);
+                document.getElementById('video-container').innerHTML = "<p class='text-red-500'>加载视频失败，请检查 JSON 文件。</p>";
             }
         }
 
         function renderVideos() {
             const container = document.getElementById('video-container');
             container.innerHTML = '';
-
-            if (videos.length === 0) {
-                container.innerHTML = "<p class='text-gray-500'>暂无视频数据</p>";
-                return;
-            }
-
             const start = (currentPage - 1) * videosPerPage;
             const end = start + videosPerPage;
             const pageVideos = videos.slice(start, end);
 
-            pageVideos.forEach(video => {
+            pageVideos.forEach((video, index) => {
                 const videoElement = document.createElement('div');
                 videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
                 videoElement.innerHTML = `
@@ -66,10 +60,62 @@
                     <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
                     <p class="text-gray-500">${video.vod_time}</p>
                 `;
-                videoElement.addEventListener('click', () => alert(`播放: ${video.vod_name}`)); // 先测试点击事件
+                videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
                 container.appendChild(videoElement);
             });
         }
+
+        function playVideo(videoUrl) {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayer');
+
+            // 清除旧的视频源，防止叠加
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+
+            if (Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(videoUrl);
+                hls.attachMedia(videoPlayer);
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                videoPlayer.src = videoUrl;
+            } else {
+                alert('您的浏览器不支持 HLS 播放！');
+                return;
+            }
+
+            videoPlayer.play();
+            modal.classList.remove('hidden');
+            modal.classList.add('opacity-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayer');
+
+            modal.classList.add('opacity-0'); // 添加淡出动画
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('opacity-100');
+                videoPlayer.pause();
+                videoPlayer.src = ''; // 清空视频源
+                if (hls) {
+                    hls.destroy();
+                    hls = null;
+                }
+            }, 300); // 300ms 后隐藏（匹配 CSS 动画）
+        }
+
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+
+        // 点击模态框背景也可以关闭
+        document.getElementById('videoModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('videoModal')) {
+                closeModal();
+            }
+        });
 
         document.getElementById('prevPage').addEventListener('click', () => {
             if (currentPage > 1) {
