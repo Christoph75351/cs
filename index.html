@@ -149,9 +149,8 @@ function playVideo(videoUrl) {
 
     modal.classList.remove('hidden');
     videoPlayer.play();
-    lastTime = 0;
+    lastTime = 0; // **初始化 lastTime**
 
-    // **未登录用户限制进度条拖动**
     if (!localStorage.getItem("loggedInUser")) {
         setTimeout(() => {
             videoPlayer.pause();
@@ -159,14 +158,21 @@ function playVideo(videoUrl) {
             openLoginModal();
         }, 30000);
 
+        // **未登录时监听 seeking 事件**
         videoPlayer.addEventListener("seeking", preventSeeking);
+        
+        // **确保 lastTime 及时更新**
         videoPlayer.addEventListener("timeupdate", function () {
             lastTime = videoPlayer.currentTime;
         });
     } else {
+        // **已登录用户可以拖动进度条**
         videoPlayer.removeEventListener("seeking", preventSeeking);
     }
 }
+
+
+        
  // **封装进度条拖动限制的逻辑**
 function preventSeeking(event) {
     const videoPlayer = event.target;
@@ -174,6 +180,7 @@ function preventSeeking(event) {
         videoPlayer.currentTime = lastTime;
     }
 }
+
 
 
 
@@ -258,6 +265,7 @@ function login() {
         document.getElementById("loginError").classList.remove("hidden");
     }
 }
+
 
 
 
