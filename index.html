@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>视频播放网站</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script> <!-- HLS 播放支持 -->
 </head>
 <body class="bg-gray-100 p-4">
     <div class="max-w-5xl mx-auto">
@@ -13,6 +14,14 @@
         <div class="flex justify-between mt-4">
             <button id="prevPage" class="px-4 py-2 bg-blue-500 text-white rounded">上一页</button>
             <button id="nextPage" class="px-4 py-2 bg-blue-500 text-white rounded">下一页</button>
+        </div>
+    </div>
+
+    <!-- 模态框 (视频播放器) -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden">
+        <div class="bg-white p-4 rounded-lg shadow-lg max-w-3xl w-full relative">
+            <button id="closeModal" class="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-full">X</button>
+            <video id="videoPlayer" class="w-full" controls></video>
         </div>
     </div>
 
@@ -42,17 +51,42 @@
             const end = start + videosPerPage;
             const pageVideos = videos.slice(start, end);
 
-            pageVideos.forEach(video => {
+            pageVideos.forEach((video, index) => {
                 const videoElement = document.createElement('div');
-                videoElement.className = 'bg-white p-2 rounded shadow';
+                videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer';
                 videoElement.innerHTML = `
                     <img src="${video.vod_pic}" alt="${video.vod_name}" class="w-full h-40 object-cover rounded">
                     <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
                     <p class="text-gray-500">${video.vod_time}</p>
                 `;
+                videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
                 container.appendChild(videoElement);
             });
         }
+
+        function playVideo(videoUrl) {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayer');
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(videoUrl);
+                hls.attachMedia(videoPlayer);
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                videoPlayer.src = videoUrl;
+            } else {
+                alert('您的浏览器不支持 HLS 播放！');
+                return;
+            }
+
+            modal.classList.remove('hidden');
+            videoPlayer.play();
+        }
+
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('videoModal').classList.add('hidden');
+            document.getElementById('videoPlayer').pause();
+        });
 
         document.getElementById('prevPage').addEventListener('click', () => {
             if (currentPage > 1) {
