@@ -18,7 +18,7 @@
     </div>
 
     <!-- 模态框 (视频播放器) -->
-    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden">
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden transition-opacity duration-300">
         <div class="bg-white p-4 rounded-lg shadow-lg max-w-3xl w-full relative">
             <button id="closeModal" class="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-full">X</button>
             <video id="videoPlayer" class="w-full" controls></video>
@@ -29,6 +29,7 @@
         let videos = [];
         let currentPage = 1;
         const videosPerPage = 40;
+        let hls = null; // 存储 HLS 实例
 
         async function loadVideos() {
             try {
@@ -53,7 +54,7 @@
 
             pageVideos.forEach((video, index) => {
                 const videoElement = document.createElement('div');
-                videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer';
+                videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
                 videoElement.innerHTML = `
                     <img src="${video.vod_pic}" alt="${video.vod_name}" class="w-full h-40 object-cover rounded">
                     <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
@@ -68,8 +69,14 @@
             const modal = document.getElementById('videoModal');
             const videoPlayer = document.getElementById('videoPlayer');
 
+            // 清除旧的视频源，防止叠加
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+
             if (Hls.isSupported()) {
-                const hls = new Hls();
+                hls = new Hls();
                 hls.loadSource(videoUrl);
                 hls.attachMedia(videoPlayer);
             } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
@@ -79,13 +86,35 @@
                 return;
             }
 
-            modal.classList.remove('hidden');
             videoPlayer.play();
+            modal.classList.remove('hidden');
+            modal.classList.add('opacity-100');
         }
 
-        document.getElementById('closeModal').addEventListener('click', () => {
-            document.getElementById('videoModal').classList.add('hidden');
-            document.getElementById('videoPlayer').pause();
+        function closeModal() {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayer');
+
+            modal.classList.add('opacity-0'); // 添加淡出动画
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('opacity-100');
+                videoPlayer.pause();
+                videoPlayer.src = ''; // 清空视频源
+                if (hls) {
+                    hls.destroy();
+                    hls = null;
+                }
+            }, 300); // 300ms 后隐藏（匹配 CSS 动画）
+        }
+
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+
+        // 点击模态框背景也可以关闭
+        document.getElementById('videoModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('videoModal')) {
+                closeModal();
+            }
         });
 
         document.getElementById('prevPage').addEventListener('click', () => {
