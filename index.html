@@ -158,28 +158,37 @@ function playVideo(videoUrl) {
             openLoginModal();
         }, 30000);
 
-        // **未登录时监听 seeking 事件**
+        // **未登录时禁止拖动进度条**
         videoPlayer.addEventListener("seeking", preventSeeking);
-        
-        // **确保 lastTime 及时更新**
         videoPlayer.addEventListener("timeupdate", function () {
             lastTime = videoPlayer.currentTime;
         });
+
+        // **未登录时禁用默认控制条**
+        videoPlayer.removeAttribute("controls");
     } else {
-        // **已登录用户可以拖动进度条**
+        // **登录后恢复进度条拖动，并显示 controls**
         videoPlayer.removeEventListener("seeking", preventSeeking);
+        videoPlayer.setAttribute("controls", "true");
     }
 }
+
 
 
         
  // **封装进度条拖动限制的逻辑**
 function preventSeeking(event) {
     const videoPlayer = event.target;
-    if (videoPlayer.currentTime > lastTime) {
+    if (!localStorage.getItem("loggedInUser") && videoPlayer.currentTime > lastTime) {
         videoPlayer.currentTime = lastTime;
     }
 }
+
+videoPlayer.addEventListener("timeupdate", function () {
+    if (!localStorage.getItem("loggedInUser")) {
+        lastTime = videoPlayer.currentTime;
+    }
+});
 
 
 
