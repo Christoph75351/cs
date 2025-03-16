@@ -47,25 +47,29 @@
             }
         }
 
-        function renderVideos() {
-            const container = document.getElementById('video-container');
-            container.innerHTML = '';
-            const start = (currentPage - 1) * videosPerPage;
-            const end = start + videosPerPage;
-            const pageVideos = videos.slice(start, end);
+    function renderVideos() {
+    const container = document.getElementById('video-container');
+    container.innerHTML = '';
+    const start = (currentPage - 1) * videosPerPage;
+    const end = start + videosPerPage;
+    const pageVideos = videos.slice(start, end);
 
-            pageVideos.forEach((video) => {
-                const videoElement = document.createElement('div');
-                videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
-                videoElement.innerHTML = `
-                    <img src="${video.vod_pic}" alt="${video.vod_name}" class="w-full h-40 object-cover rounded">
-                    <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
-                    <p class="text-gray-500">${video.vod_time}</p>
-                `;
-                videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
-                container.appendChild(videoElement);
-            });
-        }
+    pageVideos.forEach((video) => {
+        const videoElement = document.createElement('div');
+        videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
+        videoElement.innerHTML = `
+            <img src="${video.vod_pic}" alt="${video.vod_name}" class="w-full h-40 object-cover rounded">
+            <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
+            <p class="text-gray-500">${video.vod_time}</p>
+        `;
+        videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
+        container.appendChild(videoElement);
+    });
+
+    // 让页面滚动到顶部
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 
         function playVideo(videoUrl) {
             const modal = document.getElementById('videoModal');
