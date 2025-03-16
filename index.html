@@ -17,47 +17,48 @@
         </div>
     </div>
 
-    <!-- 模态框 (视频播放器) -->
-    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden transition-opacity duration-300">
-        <div class="bg-white p-4 rounded-lg shadow-lg w-full max-w-3xl sm:max-w-xl lg:max-w-2xl relative">
-            <!-- 确保 X 按钮不会被视频遮挡 -->
-            <button id="closeModal" class="absolute top-2 right-2 px-4 py-2 bg-red-600 text-white text-lg font-bold rounded-full z-50 hover:bg-red-700 transition">
-                ✖
-            </button>
-            <div class="relative w-full max-h-[90vh] flex justify-center">
-                <video id="videoPlayer" class="w-full h-auto object-contain rounded-lg" controls></video>
-            </div>
-        </div>
-    </div>
+    <!-- 提示信息 -->
+    <p id="errorMessage" class="text-red-500 text-center mt-4 hidden">加载视频失败，请检查 JSON 文件。</p>
 
     <script>
         let videos = [];
         let currentPage = 1;
         const videosPerPage = 40;
-        let hls = null; // 存储 HLS 实例
 
         async function loadVideos() {
             try {
+                console.log("正在加载 JSON 数据...");
                 const response = await fetch('https://christoph75351.github.io/cs/videos.json');
-                if (!response.ok) throw new Error('Failed to load JSON');
-                
+                if (!response.ok) throw new Error('JSON 加载失败');
+
                 videos = await response.json();
-                console.log("视频数据：", videos);
+                console.log("加载成功，视频数据:", videos);
+                
+                if (!Array.isArray(videos) || videos.length === 0) {
+                    throw new Error("JSON 格式错误或为空");
+                }
+
                 renderVideos();
             } catch (error) {
-                console.error('Error loading videos:', error);
-                document.getElementById('video-container').innerHTML = "<p class='text-red-500'>加载视频失败，请检查 JSON 文件。</p>";
+                console.error('加载视频失败:', error);
+                document.getElementById('errorMessage').classList.remove('hidden');
             }
         }
 
         function renderVideos() {
             const container = document.getElementById('video-container');
             container.innerHTML = '';
+
+            if (videos.length === 0) {
+                container.innerHTML = "<p class='text-gray-500'>暂无视频数据</p>";
+                return;
+            }
+
             const start = (currentPage - 1) * videosPerPage;
             const end = start + videosPerPage;
             const pageVideos = videos.slice(start, end);
 
-            pageVideos.forEach((video) => {
+            pageVideos.forEach(video => {
                 const videoElement = document.createElement('div');
                 videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
                 videoElement.innerHTML = `
@@ -65,47 +66,26 @@
                     <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
                     <p class="text-gray-500">${video.vod_time}</p>
                 `;
-                videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
+                videoElement.addEventListener('click', () => alert(`播放: ${video.vod_name}`)); // 先测试点击事件
                 container.appendChild(videoElement);
             });
         }
 
-        function playVideo(videoUrl) {
-            const modal = document.getElementById('videoModal');
-            const videoContainer = document.querySelector('.relative.w-full'); // 取 video 父级
-            let videoPlayer = document.getElementById('videoPlayer');
-
-            // **先销毁旧的视频实例**
-            if (hls) {
-                hls.destroy();
-                hls = null;
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderVideos();
             }
-            videoPlayer.remove(); // 删除旧 video
-            videoPlayer = document.createElement('video'); // 重新创建 video
-            videoPlayer.id = 'videoPlayer';
-            videoPlayer.className = 'w-full h-auto object-contain rounded-lg';
-            videoPlayer.setAttribute('controls', '');
-            videoContainer.appendChild(videoPlayer);
+        });
 
-            // **重新创建 HLS 实例**
-            if (Hls.isSupported()) {
-                hls = new Hls();
-                hls.loadSource(videoUrl);
-                hls.attachMedia(videoPlayer);
-            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                videoPlayer.src = videoUrl;
-            } else {
-                alert('您的浏览器不支持 HLS 播放！');
-                return;
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage * videosPerPage < videos.length) {
+                currentPage++;
+                renderVideos();
             }
+        });
 
-            videoPlayer.play();
-            modal.classList.remove('hidden');
-            modal.classList.add('opacity-100');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('videoModal');
-
-            modal.classList.add('opacity-0');
-       
+        loadVideos();
+    </script>
+</body>
+</html>
