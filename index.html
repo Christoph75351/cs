@@ -20,9 +20,12 @@
     <!-- 模态框 (视频播放器) -->
     <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden transition-opacity duration-300">
         <div class="bg-white p-4 rounded-lg shadow-lg w-full max-w-3xl sm:max-w-xl lg:max-w-2xl relative">
-            <button id="closeModal" class="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded-full">X</button>
-            <div class="relative w-full aspect-w-9 aspect-h-16 max-h-[90vh]">
-                <video id="videoPlayer" class="w-full h-full object-contain" controls></video>
+            <!-- 确保 X 按钮不会被视频遮挡 -->
+            <button id="closeModal" class="absolute top-2 right-2 px-4 py-2 bg-red-600 text-white text-lg font-bold rounded-full z-50 hover:bg-red-700 transition">
+                ✖
+            </button>
+            <div class="relative w-full max-h-[90vh] flex justify-center">
+                <video id="videoPlayer" class="w-full h-auto object-contain rounded-lg" controls></video>
             </div>
         </div>
     </div>
@@ -69,13 +72,22 @@
 
         function playVideo(videoUrl) {
             const modal = document.getElementById('videoModal');
-            const videoPlayer = document.getElementById('videoPlayer');
+            const videoContainer = document.querySelector('.relative.w-full'); // 取 video 父级
+            let videoPlayer = document.getElementById('videoPlayer');
 
+            // **先销毁旧的视频实例**
             if (hls) {
                 hls.destroy();
                 hls = null;
             }
+            videoPlayer.remove(); // 删除旧 video
+            videoPlayer = document.createElement('video'); // 重新创建 video
+            videoPlayer.id = 'videoPlayer';
+            videoPlayer.className = 'w-full h-auto object-contain rounded-lg';
+            videoPlayer.setAttribute('controls', '');
+            videoContainer.appendChild(videoPlayer);
 
+            // **重新创建 HLS 实例**
             if (Hls.isSupported()) {
                 hls = new Hls();
                 hls.loadSource(videoUrl);
@@ -94,44 +106,6 @@
 
         function closeModal() {
             const modal = document.getElementById('videoModal');
-            const videoPlayer = document.getElementById('videoPlayer');
 
             modal.classList.add('opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('opacity-100');
-                videoPlayer.pause();
-                videoPlayer.src = '';
-                if (hls) {
-                    hls.destroy();
-                    hls = null;
-                }
-            }, 300);
-        }
-
-        document.getElementById('closeModal').addEventListener('click', closeModal);
-
-        document.getElementById('videoModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('videoModal')) {
-                closeModal();
-            }
-        });
-
-        document.getElementById('prevPage').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderVideos();
-            }
-        });
-
-        document.getElementById('nextPage').addEventListener('click', () => {
-            if (currentPage * videosPerPage < videos.length) {
-                currentPage++;
-                renderVideos();
-            }
-        });
-
-        loadVideos();
-    </script>
-</body>
-</html>
+       
