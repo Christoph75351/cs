@@ -117,29 +117,33 @@
         }
 
         function renderVideos() {
-            const container = document.getElementById('video-container');
-            container.innerHTML = '';
+    const container = document.getElementById('video-container');
+    container.innerHTML = '';
 
-            let filteredVideos = currentCategory === "all" ? videos : videos.filter(v => v.type_name === currentCategory);
+    let filteredVideos = currentCategory === "all" ? videos : videos.filter(v => v.type_name === currentCategory);
 
-            const start = (currentPage - 1) * videosPerPage;
-            const end = start + videosPerPage;
-            const pageVideos = filteredVideos.slice(start, end);
+    const start = (currentPage - 1) * videosPerPage;
+    const end = start + videosPerPage;
+    const pageVideos = filteredVideos.slice(start, end);
 
-            pageVideos.forEach((video) => {
-                const videoElement = document.createElement('div');
-                videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
-                videoElement.innerHTML = `
-                    <img src="${video.vod_pic}" alt="${video.vod_name}" class="w-full h-40 object-cover rounded">
-                    <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
-                    <p class="text-gray-500">${video.vod_time}</p>
-                `;
-                videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
-                container.appendChild(videoElement);
-            });
+    pageVideos.forEach((video) => {
+        const videoElement = document.createElement('div');
+        videoElement.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition';
+        videoElement.innerHTML = `
+            <img src="${video.vod_pic}" alt="${video.vod_name}" class="w-full h-40 object-cover rounded">
+            <h2 class="mt-2 text-lg font-semibold">${video.vod_name}</h2>
+            <p class="text-gray-500">${video.vod_time}</p>
+        `;
+        videoElement.addEventListener('click', () => playVideo(video.vod_play_url));
+        container.appendChild(videoElement);
+    });
 
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // ✅ 加在这里，更新总页数显示
+    updateTotalPages();
+}
+
 
 function playVideo(videoUrl) {
     const modal = document.getElementById('videoModal');
