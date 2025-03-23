@@ -166,7 +166,7 @@ function playVideo(videoUrl) {
     videoPlayer.play();
     lastTime = 0; // **初始化 lastTime**
 
-    if (!localStorage.getItem("loggedInUser")) {
+    if (!sessionStorage.getItem("loggedInUser")) {
         setTimeout(() => {
             videoPlayer.pause();
             closeModal();
@@ -194,13 +194,13 @@ function playVideo(videoUrl) {
  // **封装进度条拖动限制的逻辑**
 function preventSeeking(event) {
     const videoPlayer = event.target;
-    if (!localStorage.getItem("loggedInUser") && videoPlayer.currentTime > lastTime) {
+    if (!sessionStorage.getItem("loggedInUser") && videoPlayer.currentTime > lastTime) {
         videoPlayer.currentTime = lastTime;
     }
 }
 
 videoPlayer.addEventListener("timeupdate", function () {
-    if (!localStorage.getItem("loggedInUser")) {
+    if (!sessionStorage.getItem("loggedInUser")) {
         lastTime = videoPlayer.currentTime;
     }
 });
@@ -299,7 +299,7 @@ function login() {
 
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
-        localStorage.setItem("loggedInUser", username);
+        sessionStorage.setItem("loggedInUser", username);
         updateLoginState();
         closeLoginModal();
 
@@ -319,12 +319,12 @@ function login() {
 
 
         function logout() {
-            localStorage.removeItem("loggedInUser");
+            sessionStorage.removeItem("loggedInUser");
             updateLoginState();
         }
 
         function updateLoginState() {
-            const loggedInUser = localStorage.getItem("loggedInUser");
+            const loggedInUser = sessionStorage.getItem("loggedInUser");
             if (loggedInUser) {
                 document.getElementById("loginBtn").classList.add("hidden");
                 document.getElementById("userWelcome").textContent = `欢迎，${loggedInUser}`;
