@@ -100,7 +100,7 @@ async function loadCategoryVideos(category) {
     }
 
     try {
-        const response = await fetch(`https://Kira5309.github.io/cqcm/${fileName}`);
+        const response = await fetch(`https://christoph75351.github.io/cs/${fileName}`);
         if (!response.ok) throw new Error('Failed to load video data');
         videos = await response.json();
         console.log(`分类【${category}】加载完成，共${videos.length}条`);
