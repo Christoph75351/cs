@@ -90,7 +90,14 @@ async function loadVideos() {
     renderVideos();
 }
 
+const categoryFileMap = {
+    "学生": "xuesheng",
+    "人妻": "rentai"
+};
 
+fileName = category === "all" ? "videos_all.json" : `videos_${categoryFileMap[category]}.json`;
+
+        
 async function loadCategoryVideos(category) {
     let fileName;
     if (category === "all") {
