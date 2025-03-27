@@ -358,6 +358,42 @@ function login() {
         loadUsers();
         updateLoginState();
         loadVideos();
+<script>
+// 禁用右键菜单
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// 禁用 F12、Ctrl+U、Ctrl+S、Ctrl+Shift+I
+document.addEventListener('keydown', function (e) {
+    if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase()))
+    ) {
+        e.preventDefault();
+        alert('操作被禁止');
+    }
+});
+
+// 禁止拖拽保存
+document.addEventListener('dragstart', e => e.preventDefault());
+
+// （可选）控制台打开检测，提示后刷新页面
+let devtoolsOpen = false;
+setInterval(() => {
+    const before = new Date();
+    debugger;
+    const after = new Date();
+    if (after - before > 100) {
+        if (!devtoolsOpen) {
+            devtoolsOpen = true;
+            alert("检测到开发者工具已打开，页面将自动刷新。");
+            location.reload();
+        }
+    }
+}, 1000);
+</script>
+
+        
     </script>
 </body>
 </html>
