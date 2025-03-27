@@ -7,20 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script> <!-- HLS 播放支持 -->
 
-<script>
-  // 禁止右键和调试
-  document.addEventListener('contextmenu', event => event.preventDefault());
-  document.onkeydown = function (e) {
-    if (
-      e.key === "F12" ||
-      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i") ||
-      (e.ctrlKey && e.key.toLowerCase() === "u")
-    ) {
-      return false;
-    }
-  };
-</script>
-
 
 </head>
 <body class="bg-gray-100">
