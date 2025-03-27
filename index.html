@@ -92,8 +92,8 @@ async function loadVideos() {
 
 <script>
   const videoSources = [
-    { file: 'videos_all.json', category: '全部视频' },
-    { file: 'videos_xuesheng.json', category: '学生专区' }
+    { file: './videos_all.json', category: '全部视频' },
+    { file: './videos_xuesheng.json', category: '学生专区' }
   ];
 
   function createVideoCard(video, category) {
@@ -131,7 +131,7 @@ async function loadVideos() {
   }
 
 function loadVideos() {
-    let jsonFile = "videos_all.json"; // 默认加载全部视频
+    let jsonFile = "./videos_all.json"; // 默认加载全部视频
     if (currentCategory !== "all") {
         jsonFile = `videos_${currentCategory}.json`; // 例如：videos_xuesheng.json
     }
