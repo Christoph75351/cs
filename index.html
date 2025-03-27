@@ -90,32 +90,26 @@ async function loadVideos() {
     renderVideos();
 }
 
-const categoryFileMap = {
-    "学生": "xuesheng",
-    "人妻": "rentai"
-};
+const categoryMap = { "学生": "xuesheng" };
+let fileName = `videos_${categoryMap[selectedCategory] || "all"}.json`;
 
-fileName = category === "all" ? "videos_all.json" : `videos_${categoryFileMap[category]}.json`;
 
         
-async function loadCategoryVideos(category) {
-    let fileName;
-    if (category === "all") {
-        fileName = "videos_all.json";
-    } else {
-        fileName = `videos_${category}.json`;
-    }
+async function loadCategoryVideos(selectedCategory) {
+    if (!selectedCategory) selectedCategory = "all";  // 确保 category 不为空
+    let fileName = selectedCategory === "all" ? "videos_all.json" : `videos_${encodeURIComponent(selectedCategory)}.json`;
 
     try {
-        const response = await fetch(`https://christoph75351.github.io/cs/${fileName}`);
-        if (!response.ok) throw new Error('Failed to load video data');
-        videos = await response.json();
-        console.log(`分类【${category}】加载完成，共${videos.length}条`);
+        let response = await fetch(fileName);
+        if (!response.ok) throw new Error("Failed to load video data");
+
+        let videos = await response.json();
+        renderVideos(videos);
     } catch (error) {
-        console.error('分类加载失败:', error);
-        videos = []; // 加载失败清空
+        console.error("分类加载失败:", error);
     }
 }
+
 
 
         function generateCategories() {
