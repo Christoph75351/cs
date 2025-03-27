@@ -166,17 +166,18 @@ function playVideo(base64Url) {
     const modal = document.getElementById('videoModal');
     const videoPlayer = document.getElementById('videoPlayer');
 
-    // 防止 HLS 播放器多次初始化
     if (typeof hls !== 'undefined' && hls) {
         hls.destroy();
         hls = null;
     }
 
-    const decodedUrl = atob(base64Url); // 👈 Base64 解码
+    const decodedUrl = atob(base64Url); // Base64 解码
     videoPlayer.src = decodedUrl;
-    videoPlayer.load();
     modal.classList.remove('hidden');
+    videoPlayer.load();
+    videoPlayer.play();
 }
+
 
 
     if (Hls.isSupported()) {
