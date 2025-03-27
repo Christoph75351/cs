@@ -90,6 +90,66 @@ async function loadVideos() {
     renderVideos();
 }
 
+<script>
+  const videoSources = [
+    { file: 'videos_all.json', category: '全部视频' },
+    { file: 'videos_xuesheng.json', category: '学生专区' }
+  ];
+
+  function createVideoCard(video, category) {
+    const container = document.getElementById('video-container');
+
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.style.border = '1px solid #ccc';
+    card.style.margin = '10px';
+    card.style.padding = '10px';
+    card.style.width = '320px';
+
+    const title = document.createElement('h3');
+    title.textContent = `[${category}] ${video.vod_name}`;
+
+    const img = document.createElement('img');
+    img.src = video.vod_pic;
+    img.alt = video.vod_name;
+    img.style.width = '100%';
+
+    const videoLink = document.createElement('a');
+    videoLink.href = video.vod_play_url;
+    videoLink.target = '_blank';
+    videoLink.textContent = '点击播放';
+
+    const info = document.createElement('p');
+    info.textContent = `分类: ${video.type_name} | 上传时间: ${video.vod_time}`;
+
+    card.appendChild(title);
+    card.appendChild(img);
+    card.appendChild(info);
+    card.appendChild(videoLink);
+
+    container.appendChild(card);
+  }
+
+  function loadVideos() {
+    videoSources.forEach(source => {
+      fetch(source.file)
+        .then(response => {
+          if (!response.ok) throw new Error(`无法读取 ${source.file}`);
+          return response.json();
+        })
+        .then(data => {
+          data.forEach(video => createVideoCard(video, source.category));
+        })
+        .catch(err => {
+          console.error('读取失败：', err);
+        });
+    });
+  }
+
+  window.onload = loadVideos;
+</script>
+
+        
 const categoryMap = { "学生": "xuesheng" };
 let fileName = `videos_${categoryMap[selectedCategory] || "all"}.json`;
 
