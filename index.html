@@ -130,21 +130,28 @@ async function loadVideos() {
     container.appendChild(card);
   }
 
-  function loadVideos() {
-    videoSources.forEach(source => {
-      fetch(source.file)
+function loadVideos() {
+    let jsonFile = "videos_all.json"; // 默认加载全部视频
+    if (currentCategory !== "all") {
+        jsonFile = `videos_${currentCategory}.json`; // 例如：videos_xuesheng.json
+    }
+
+    fetch(jsonFile)
         .then(response => {
-          if (!response.ok) throw new Error(`无法读取 ${source.file}`);
-          return response.json();
+            if (!response.ok) {
+                throw new Error("加载视频数据失败");
+            }
+            return response.json();
         })
         .then(data => {
-          data.forEach(video => createVideoCard(video, source.category));
+            videos = data;
+            renderVideos();
         })
-        .catch(err => {
-          console.error('读取失败：', err);
+        .catch(error => {
+            console.error("分类加载失败:", error);
         });
-    });
-  }
+}
+
 
   window.onload = loadVideos;
 </script>
@@ -392,6 +399,10 @@ function login() {
     }
 }
 
+function changeCategory(category) {
+    currentCategory = category; // 更新当前分类
+    loadVideos(); // 重新加载该分类的视频
+}
 
 
 
@@ -419,6 +430,12 @@ function login() {
         document.getElementById("closeLogin").addEventListener("click", closeLoginModal);
         document.getElementById("submitLogin").addEventListener("click", login);
         document.getElementById("logoutBtn").addEventListener("click", logout);
+
+<ul>
+    <li><a href="#" onclick="changeCategory('all')">全部</a></li>
+    <li><a href="#" onclick="changeCategory('xuesheng')">学生</a></li>
+</ul>
+
 
         loadUsers();
         updateLoginState();
